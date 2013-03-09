@@ -17,6 +17,10 @@ def make_display_name(filename):
 def make_commons_url(filename):
     return "https://commons.wikimedia.org/wiki/File:%s" % (filename.replace("File:", ""), )
 
+@app.route('/channel.html')
+def fb_channel():
+    return '<script src="//connect.facebook.net/en_US/all.js"></script>'
+
 @app.route('/')
 def index():
     return render_template("index.html")
