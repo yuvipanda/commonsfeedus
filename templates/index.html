@@ -1,53 +1,110 @@
+<!DOCTYPE html> 
 <html>
     <head>
         <title>commonsfeed.us - Push your awesome activities on Wikimedia Commons to Facebook!</title>
-        <link href="//netdna.bootstrapcdn.com/bootswatch/2.3.0/simplex/bootstrap.min.css" rel="stylesheet" />
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
         <style>
             #footer {
                 text-align: center;
             }
-            #fblogin-container {
-                min-height: 200px;
-            }
             .right {
                 text-align: right;
+            }
+            .starting #starting {
+                display: block;
+            }
+            .no-facebook #facebook-state {
+                display: block;
+            }
+            .no-commons #commons-state {
+                display: block;
+            }
+            .not-shown {
+                display: none;
             }
         </style>
     </head>
 
-    <body>
+    <body class="starting">
         <div id="fb-root"></div>
-            <script>
-              // Additional JS functions here
-              window.fbAsyncInit = function() {
+        <script>
+            function setState( state ) {
+                $( "body" ).removeClass( "no-facebook starting no-commons" ).addClass( state );
+            }
+
+            var fbUserID = null;
+
+            window.fbAsyncInit = function() {
                 FB.init({
-                  appId      : '545467088820536', // App ID
-                  channelUrl : '//commonsfeed.us/channel.html', // Channel File
-                  status     : true, // check login status
-                  cookie     : true, // enable cookies to allow the server to access the session
-                  xfbml      : true  // parse XFBML
+                    appId      : '545467088820536', // App ID
+                    channelUrl : '//commonsfeed.us/channel.html', // Channel File
+                    status     : true, // check login status
+                    cookie     : true, // enable cookies to allow the server to access the session
+                    xfbml      : true  // parse XFBML
                 });
 
-              };
+                FB.getLoginStatus( function( resp ) {
+                    if( resp.status === 'connected' ) {
+                        fbUserID = resp.authResponse.userID;
+                        setState( "no-commons" );
+                    } else {
+                        setState( "no-facebook" );
+                        $( "#facebook-login" ).click( function() {
+                            FB.login( function( resp ) {
+                                if( resp.authResponse ) {
+                                    fbUserID = resp.authResponse.userID;
+                                    setState( "no-commons" );
+                                }
+                            }, { scope: "publish_actions" } );
+                            $( this ).text( "Logging in..." );
+                            return false;
+                        } );
+                    }
+                });
 
-              // Load the SDK Asynchronously
-              (function(d){
-                 var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
-                 if (d.getElementById(id)) {return;}
-                 js = d.createElement('script'); js.id = id; js.async = true;
-                 js.src = "//connect.facebook.net/en_US/all.js";
-                 ref.parentNode.insertBefore(js, ref);
-               }(document));
-            </script>
-        <div class="container">
-            <div class="row">
-                <div class="span4 right">
-                    <h3>Login with Facebook</h3>
-                </div>
-                <div id="fblogin-container" class="span8">
-                    <div class="fb-login-button" data-show-faces="true" data-width="200" data-max-rows="1"></div>
+                $( "#commons-login" ).click( function() {
+                    var commonsUserName = $( "#commons-username" ).val();
+                    alert( "Your FB User ID is " + fbUserID + " and your commons username is " + commonsUserName );
+                    return false;
+                } );
+
+            };
+
+            // Load the SDK Asynchronously
+            (function(d){
+                var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+                if (d.getElementById(id)) {return;}
+                js = d.createElement('script'); js.id = id; js.async = true;
+                js.src = "//connect.facebook.net/en_US/all.js";
+                ref.parentNode.insertBefore(js, ref);
+            }(document));
+        </script>
+        <div class="navbar navbar-static-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Commons Feed</a>
                 </div>
             </div>
+        </div>
+        <div class="container">
+            <div id="starting" class="hero-unit not-shown">
+                Just a moment...
+            </div>
+            <div id="facebook-state" class="hero-unit not-shown">
+                <p>Login with Facebook
+                    <a href="#" id="facebook-login" class="btn  btn-primary disabled">Log In</a>
+                </p>
+            </div>
+            <div id="commons-state" class="hero-unit not-shown">
+                <p>Your commons username: </p>
+                <div class="input-prepend input-append">
+                    <span class="add-on">User:</span>
+                    <input type="text" id="commons-username" />
+                    <a href="#" id="commons-login" class="btn btn-primary">Feed!</a>
+                </div>
+            </div>
+
             <div class="row">
                 <div id="footer" class="span12"><small>Code by <a href="http://yuvi.in">Yuvi Panda</a>, with the awesome <a href="http://ragesoss.com">Sage Ross</a> for inspiration and support</small></div>
             </div>
