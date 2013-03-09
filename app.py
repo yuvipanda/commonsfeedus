@@ -17,7 +17,7 @@ def make_display_name(filename):
 def make_commons_url(filename):
     return "https://commons.wikimedia.org/wiki/File:%s" % (filename.replace("File:", ""), )
 
-@app.route('/file')
+@app.route('/')
 def index():
     return render_template("index.html")
 
