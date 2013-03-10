@@ -37,7 +37,7 @@
                     FB.getLoginStatus( function( resp ) {
                         if( resp.status === 'connected' ) {
                             fbUserID = resp.authResponse.userID;
-                            $.get( '/user/' + fbUserID ).done( function( data ) {
+                            $.get( '/user/' + fbUserID , { cache: false }).done( function( data ) {
                                 if( data ) {
                                     userdata = data;
                                     setState( 'authenticated' );
