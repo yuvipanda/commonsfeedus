@@ -20,20 +20,54 @@
             .no-commons #commons-state {
                 display: block;
             }
+            .authenticated #authenticated-state {
+                display: block;
+            }
             .not-shown {
                 display: none;
             }
         </style>
     </head>
 
-    <body class="starting">
+    <body>
         <div id="fb-root"></div>
         <script>
+            var stateEnter = {
+                "starting": function() {
+                    FB.getLoginStatus( function( resp ) {
+                        if( resp.status === 'connected' ) {
+                            fbUserID = resp.authResponse.userID;
+                            $.get( '/user/' + fbUserID ).done( function( data ) {
+                                if( data ) {
+                                    userdata = data;
+                                    setState( 'authenticated' );
+                                } else {
+                                    setState( "no-commons" );
+                                }
+                            });
+                            setState( "no-commons" );
+                        } else {
+                            setState( "no-facebook" );
+                        }
+                    });
+
+                },
+                "authenticated": function() {
+                    $( 'span#commons-display-name' ).text( userdata.commons_username );
+                    $( 'span#commons-last-sync' ).text( userdata.last_sync || 'unsynced' );
+                }
+            };
+
+
             function setState( state ) {
                 $( "body" ).removeClass( "no-facebook starting no-commons" ).addClass( state );
+                if( stateEnter[ state ] ) {
+                    stateEnter[ state ]();
+                }
             }
 
             var fbUserID = null;
+            var userdata = null;
 
             window.fbAsyncInit = function() {
                 FB.init({
@@ -44,30 +78,27 @@
                     xfbml      : true  // parse XFBML
                 });
 
-                FB.getLoginStatus( function( resp ) {
-                    if( resp.status === 'connected' ) {
-                        fbUserID = resp.authResponse.userID;
-                        setState( "no-commons" );
-                    } else {
-                        setState( "no-facebook" );
-                        $( "#facebook-login" ).click( function() {
-                            FB.login( function( resp ) {
-                                if( resp.authResponse ) {
-                                    fbUserID = resp.authResponse.userID;
-                                    setState( "no-commons" );
-                                }
-                            }, { scope: "publish_actions" } );
-                            $( this ).text( "Logging in..." );
-                            return false;
-                        } );
-                    }
-                });
+                $( "#facebook-login" ).click( function() {
+                    FB.login( function( resp ) {
+                        if( resp.authResponse ) {
+                            fbUserID = resp.authResponse.userID;
+                            setState( "no-commons" );
+                        }
+                    }, { scope: "publish_actions" } );
+                    $( this ).text( "Logging in..." );
+                    return false;
+                } );
 
                 $( "#commons-login" ).click( function() {
                     var commonsUserName = $( "#commons-username" ).val();
-                    alert( "Your FB User ID is " + fbUserID + " and your commons username is " + commonsUserName );
+                    $.post( '/user', { commons_username: commonsUserName, facebook_userid: fbUserID } ).done( function( data ) {
+                        userdata = data;
+                        setState( 'authenticated' );
+                    } );
                     return false;
                 } );
+
+                setState( 'starting' );
 
             };
 
@@ -103,6 +134,11 @@
                     <input type="text" id="commons-username" />
                     <a href="#" id="commons-login" class="btn btn-primary">Feed!</a>
                 </div>
+            </div>
+
+            <div id="authenticated-state" class="hero-unit not-shown">
+                <p>Welcome, <span id="commons-display-name"> </span></p>
+                <p>Last sync: <span id="commons-last-sync"> </span></p>
             </div>
 
             <div class="row">
