@@ -1,0 +1,21 @@
+#footer {
+    text-align: center;
+}
+.right {
+    text-align: right;
+}
+.starting #starting {
+    display: block;
+}
+.no-facebook #facebook-state {
+    display: block;
+}
+.no-commons #commons-state {
+    display: block;
+}
+.authenticated #authenticated-state {
+    display: block;
+}
+.not-shown {
+    display: none;
+}
