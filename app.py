@@ -3,7 +3,7 @@ import json
 import pymongo
 from bson import json_util
 
-from flask import Flask, render_template, request, Response
+from flask import Flask, render_template, request, Response, make_response
 
 DOMAIN = "http://commonsfeed.us"
 
@@ -64,7 +64,11 @@ def show_user(fb_userid):
     if user:
         return Response(dump_obj(user), mimetype="application/json")
     else:
-        return Response({}, mimetype="application/json") #FIXME: Be a nice HTTP citizen, mkay?
+        resp = make_response({}, mimetype="application/json")
+        resp.headers['Cache-Control'] =  'no-cache, no-store, must-revalidate'
+        resp.headers['Pragma'] = 'no-cache'
+        resp.headers['Expires'] = 0
+        return resp
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True, port=80)
