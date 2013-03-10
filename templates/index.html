@@ -32,25 +32,27 @@
     <body>
         <div id="fb-root"></div>
         <script>
+            function checkCommons() {
+                $.get( '/user/' + fbUserID ).done( function( data ) {
+                    userdata = data;
+                    setState( 'authenticated' );
+                }).fail( function( xhr ) {
+                    setState( 'no-commons' );
+                });
+            }
             var stateEnter = {
                 "starting": function() {
                     FB.getLoginStatus( function( resp ) {
                         if( resp.status === 'connected' ) {
                             fbUserID = resp.authResponse.userID;
-                            $.get( '/user/' + fbUserID ).done( function( data ) {
-                                if( data ) {
-                                    userdata = data;
-                                    setState( 'authenticated' );
-                                } else {
-                                    setState( "no-commons" );
-                                }
-                            });
-                            setState( "no-commons" );
+                            checkCommons();
                         } else {
                             setState( "no-facebook" );
                         }
                     });
-
+                },
+                "no-commons": function() {
+                    checkCommons();
                 },
                 "authenticated": function() {
                     $( 'span#commons-display-name' ).text( userdata.commons_username );
@@ -60,6 +62,9 @@
 
 
             function setState( state ) {
+                if( $( "body" ).hasClass( state ) ) {
+                    return;
+                }
                 $( "body" ).removeClass( "no-facebook starting no-commons" ).addClass( state );
                 if( stateEnter[ state ] ) {
                     stateEnter[ state ]();
